@@ -6,11 +6,6 @@
 static volatile uint8 *adcsr = ADCSR;
 static volatile uint16 *addra = ADDRA;
 
-void ad_init(void)
-{
-  *adcsr = 4;
-}
-
 static int ad_is_end(void)
 {
   return (*adcsr & ADF);
@@ -24,6 +19,11 @@ static void ad_start(void)
 static void ad_end_clear(void)
 {
   *adcsr &= ~ADF;
+}
+
+void ad_init(void)
+{
+  *adcsr = 4;
 }
 
 uint16 ad_result(void)
