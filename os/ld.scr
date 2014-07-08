@@ -1,0 +1,47 @@
+OUTPUT_FORMAT("elf32-h8300")
+OUTPUT_ARCH(h8300hn)
+ENTRY("_start")
+
+MEMORY
+{
+	ramall(rwx)	: o = 0xf780, l = 0x0800 /* 2KB */
+	ram(rwx)    : o = 0xf780, l = 0x0700
+	stack(rw)	  : o = 0xff80, l = 0x0000 /* end of RAM */
+}
+
+SECTIONS
+{
+	.text : {
+		_text_start = . ;
+		*(.text)
+		_etext = . ;
+	} > ram
+
+	.rodata : {
+		_rodata_start = . ;
+		*(.strings)
+		*(.rodata)
+		*(.rodata.*)
+ 		_erodata = . ;
+	} > ram
+
+	.data : {
+		_data_start = . ;
+		*(.data)
+		_edata = . ;
+	} > ram 
+
+	.bss : {
+		_bss_start = . ;
+		*(.bss)
+		*(COMMON)
+		_ebss = . ;
+	} > ram
+
+	. = ALIGN(2);
+	_end = . ;
+
+	.stack : {
+		_stack = .;
+	} > stack
+}
