@@ -12,7 +12,7 @@ static constexpr auto SIZE = 1024 * 3;  // h8 3694f ram 2kb
 static constexpr auto INPUT = "kiraos";
 static constexpr auto OUTPUT = "kiraos.kira";
 
-static constexpr auto constexpr_elf_check(const Elf32_Ehdr *header) {
+static constexpr auto elf_check(const Elf32_Ehdr *header) {
   const auto machine = ntohs(header->e_machine);
 
   if (header->e_ident[EI_CLASS] != ELFCLASS32) return -1;    // ELF32
@@ -24,11 +24,6 @@ static constexpr auto constexpr_elf_check(const Elf32_Ehdr *header) {
     return -1;  // Hitachi H8/300 of H8/300
 
   return 0;
-}
-
-static auto elf_check(const Elf32_Ehdr *header) {
-  if (memcmp((void *)header, ELFMAG, SELFMAG)) return -1;    // ELF file
-  return constexpr_elf_check(header);
 }
 
 static constexpr auto elf_extract_program(const Elf32_Ehdr *header,
@@ -69,12 +64,9 @@ static constexpr auto finalize_kira_write(const Elf32_Ehdr *header,
   fclose((FILE *)row_file);
 }
 
-static auto kira_write(const char *const input, const char *const output) {
-  const auto header = (const Elf32_Ehdr *)malloc(SIZE);
-  const auto elf_file = fopen(input, "rb");
-  const auto row_file = fopen(output, "wb");
-
-  fread((void *)header, sizeof(char), SIZE, (FILE *)elf_file);
+static constexpr auto constexpr_kira_write(const Elf32_Ehdr *header,
+                                           const FILE *elf_file,
+                                           const FILE *row_file) {
   if (elf_check(header) < 0) {
     finalize_kira_write(header, elf_file, row_file);
     return -1;
@@ -92,6 +84,16 @@ static auto kira_write(const char *const input, const char *const output) {
   return 0;
 }
 
+static auto kira_write(const char *const input, const char *const output) {
+  const auto header = (const Elf32_Ehdr *)malloc(SIZE);
+  const auto elf_file = fopen(input, "rb");
+  const auto row_file = fopen(output, "wb");
+
+  fread((void *)header, sizeof(char), SIZE, (FILE *)elf_file);
+
+  return constexpr_kira_write(header, elf_file, row_file);
+}
+
 int main(void) {
   constexpr auto input = INPUT, output = OUTPUT;
 
@@ -99,3 +101,4 @@ int main(void) {
 
   return kira_write(input, output);
 }
+
